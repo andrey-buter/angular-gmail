@@ -1,16 +1,16 @@
 const app = angular.module( 'gmailApp', ['ui.router'] );
 	
 app.config( ($stateProvider) => {
-	$stateProvider.state('home', {
-		url: '/',
-		template: '<inbox></inbox>',
-		// path: '/000_angular/gmail'
-	});
+	$stateProvider
+		.state('home', {
+			url: '/',
+			template: '<inbox></inbox>',
+		})
+		.state('spam', {
+			url: '/spam',
+			template: '<spam></spam>'
+		});
 
-	$stateProvider.state('spam', {
-		url: '/spam',
-		template: '<spam></spam>'
-	});
 } )
 app
 	.service( 'dbJsRuService', function( $http ) {
@@ -233,54 +233,28 @@ app
 	})
 
 app
-	.component( 'inbox', {
-		templateUrl: 'tmpl/letters.html',
-		controller: function( factoryService, $filter ) {
-			this.letters = [];
+	// .component( 'newMessage', {
+	// 	bindings: {
+	// 		writeNew: '=', // двустороннее связыаение, чтоб в gmail.writeNew также менялось состояние
+	// 		letters: '=',
+	// 	},
+	// 	templateUrl: 'tmpl/new-message.html',
+	// 	controller: function( factoryService ) {
+	// 		this.writeNew = false;
+	// 		this.newLetter = factoryService.letter.defautNewLetter();
 
-			factoryService.letter.getAll()
-				.then( (data) => {
-					this.letters = data;
-					console.log(this.letters)
-				});
-
-			this.deleteLetter = (letter) => {
-				this.letters.splice(this.letters.indexOf(letter), 1);
-			}
-			
-			this.getUnreadLettersCount = () => {
-				let count = $filter('filter')( this.letters, { body: { unread: true } } ).length;
-
-				if ( 0 == count )
-					return '';
-
-				return `(${count})`;
-			}
-		}
-	})
-app
-	.component( 'newMessage', {
-		bindings: {
-			writeNew: '=', // двустороннее связыаение, чтоб в gmail.writeNew также менялось состояние
-			letters: '=',
-		},
-		templateUrl: 'tmpl/new-message.html',
-		controller: function( factoryService ) {
-			this.writeNew = false;
-			this.newLetter = factoryService.letter.defautNewLetter();
-
-			this.submit = () => {
-				factoryService.letter
-					.add( this.newLetter )
-					.then( (data) => {
-						this.letters.push( data );
-						this.newLetter = {};
-						this.writeNew = false;
-						console.log('email success added')
-					});
-			}
-		}
-	})
+	// 		this.submit = () => {
+	// 			factoryService.letter
+	// 				.add( this.newLetter )
+	// 				.then( (data) => {
+	// 					this.letters.push( data );
+	// 					this.newLetter = {};
+	// 					this.writeNew = false;
+	// 					console.log('email success added')
+	// 				});
+	// 		}
+	// 	}
+	// })
 	.component( 'letter', {
 		bindings: {
 			letter: '<',
@@ -369,6 +343,41 @@ app
 
 			// 	return `(${count})`;
 			// }
+			// 
+			// <inbox ng-if="'list' == $ctrl.status"></inbox>
+		}
+	})
+app
+	.component( 'inbox', {
+		bindings: {},
+		templateUrl: 'tmpl/letters.html',
+		controller: function( factoryService, $filter ) {
+			this.letters = [];
+
+			console.log(123)
+
+			factoryService.letter.getAll()
+				.then( (data) => {
+					this.letters = data;
+					console.log(this.letters)
+				});
+
+			this.deleteLetter = (letter) => {
+				this.letters.splice(this.letters.indexOf(letter), 1);
+			}
+			
+			this.getUnreadLettersCount = () => {
+				let count = $filter('filter')( this.letters, { body: { unread: true } } ).length;
+
+				if ( 0 == count )
+					return '';
+
+				return `(${count})`;
+			}
 		}
 	})
 
+app
+	.component( 'spam', {
+		templateUrl: 'tmpl/spam.html'
+	})

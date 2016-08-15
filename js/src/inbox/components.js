@@ -1,8 +1,11 @@
 app
 	.component( 'inbox', {
+		bindings: {},
 		templateUrl: 'tmpl/letters.html',
 		controller: function( factoryService, $filter ) {
 			this.letters = [];
+
+			console.log(123)
 
 			factoryService.letter.getAll()
 				.then( (data) => {

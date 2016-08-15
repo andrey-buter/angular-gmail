@@ -109,5 +109,7 @@ app
 
 			// 	return `(${count})`;
 			// }
+			// 
+			// <inbox ng-if="'list' == $ctrl.status"></inbox>
 		}
 	})

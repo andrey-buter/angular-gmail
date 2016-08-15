@@ -6,9 +6,7 @@ app.config(function ($stateProvider) {
 	$stateProvider.state('home', {
 		url: '/',
 		template: '<inbox></inbox>'
-	});
-
-	$stateProvider.state('spam', {
+	}).state('spam', {
 		url: '/spam',
 		template: '<spam></spam>'
 	});
@@ -239,86 +237,63 @@ app.service('mailBoxService', function (dbService) {
 	this.letter = letterService;
 });
 
-app.component('inbox', {
-	templateUrl: 'tmpl/letters.html',
-	controller: function controller(factoryService, $filter) {
-		var _this4 = this;
+app
+// .component( 'newMessage', {
+// 	bindings: {
+// 		writeNew: '=', // двустороннее связыаение, чтоб в gmail.writeNew также менялось состояние
+// 		letters: '=',
+// 	},
+// 	templateUrl: 'tmpl/new-message.html',
+// 	controller: function( factoryService ) {
+// 		this.writeNew = false;
+// 		this.newLetter = factoryService.letter.defautNewLetter();
 
-		this.letters = [];
-
-		factoryService.letter.getAll().then(function (data) {
-			_this4.letters = data;
-			console.log(_this4.letters);
-		});
-
-		this.deleteLetter = function (letter) {
-			_this4.letters.splice(_this4.letters.indexOf(letter), 1);
-		};
-
-		this.getUnreadLettersCount = function () {
-			var count = $filter('filter')(_this4.letters, { body: { unread: true } }).length;
-
-			if (0 == count) return '';
-
-			return '(' + count + ')';
-		};
-	}
-});
-app.component('newMessage', {
-	bindings: {
-		writeNew: '=', // двустороннее связыаение, чтоб в gmail.writeNew также менялось состояние
-		letters: '='
-	},
-	templateUrl: 'tmpl/new-message.html',
-	controller: function controller(factoryService) {
-		var _this5 = this;
-
-		this.writeNew = false;
-		this.newLetter = factoryService.letter.defautNewLetter();
-
-		this.submit = function () {
-			factoryService.letter.add(_this5.newLetter).then(function (data) {
-				_this5.letters.push(data);
-				_this5.newLetter = {};
-				_this5.writeNew = false;
-				console.log('email success added');
-			});
-		};
-	}
-}).component('letter', {
+// 		this.submit = () => {
+// 			factoryService.letter
+// 				.add( this.newLetter )
+// 				.then( (data) => {
+// 					this.letters.push( data );
+// 					this.newLetter = {};
+// 					this.writeNew = false;
+// 					console.log('email success added')
+// 				});
+// 		}
+// 	}
+// })
+.component('letter', {
 	bindings: {
 		letter: '<'
 	},
 	templateUrl: 'tmpl/letter.html',
 	controller: function controller(factoryService) {
-		var _this6 = this;
+		var _this4 = this;
 
 		console.log(this.letter);
 		this.open = function () {
-			_this6.openSingle();
+			_this4.openSingle();
 
-			if (false === _this6.letter.body.unread) return;
+			if (false === _this4.letter.body.unread) return;
 
-			_this6.letter.body.unread = false;
+			_this4.letter.body.unread = false;
 
-			factoryService.letter.update(_this6.letter).then(function (data) {
+			factoryService.letter.update(_this4.letter).then(function (data) {
 				console.log('success updated');
 				console.log(data);
 			});
 		};
 		this.delete = function () {
-			_this6.deleteLetter();
+			_this4.deleteLetter();
 
-			factoryService.letter.delete(_this6.letter).then(function (data) {
+			factoryService.letter.delete(_this4.letter).then(function (data) {
 				console.log('success removed');
 			});
 		};
 		this.draft = function () {
-			if (true === _this6.letter.body.draft) return;
+			if (true === _this4.letter.body.draft) return;
 
-			_this6.letter.body.draft = true;
+			_this4.letter.body.draft = true;
 
-			factoryService.letter.update(_this6.letter).then(function (data) {
+			factoryService.letter.update(_this4.letter).then(function (data) {
 				console.log('success updated');
 				console.log(data);
 			});
@@ -363,6 +338,40 @@ app.component('newMessage', {
 
 		// 	return `(${count})`;
 		// }
+		// 
+		// <inbox ng-if="'list' == $ctrl.status"></inbox>
 	}
+});
+app.component('inbox', {
+	bindings: {},
+	templateUrl: 'tmpl/letters.html',
+	controller: function controller(factoryService, $filter) {
+		var _this5 = this;
+
+		this.letters = [];
+
+		console.log(123);
+
+		factoryService.letter.getAll().then(function (data) {
+			_this5.letters = data;
+			console.log(_this5.letters);
+		});
+
+		this.deleteLetter = function (letter) {
+			_this5.letters.splice(_this5.letters.indexOf(letter), 1);
+		};
+
+		this.getUnreadLettersCount = function () {
+			var count = $filter('filter')(_this5.letters, { body: { unread: true } }).length;
+
+			if (0 == count) return '';
+
+			return '(' + count + ')';
+		};
+	}
+});
+
+app.component('spam', {
+	templateUrl: 'tmpl/spam.html'
 });
 //# sourceMappingURL=common.js.map

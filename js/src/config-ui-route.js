@@ -1,12 +1,12 @@
 app.config( ($stateProvider) => {
-	$stateProvider.state('home', {
-		url: '/',
-		template: '<inbox></inbox>',
-		// path: '/000_angular/gmail'
-	});
+	$stateProvider
+		.state('home', {
+			url: '/',
+			template: '<inbox></inbox>',
+		})
+		.state('spam', {
+			url: '/spam',
+			template: '<spam></spam>'
+		});
 
-	$stateProvider.state('spam', {
-		url: '/spam',
-		template: '<spam></spam>'
-	});
 } )
