@@ -1,0 +1,29 @@
+<div class="new-message-wrapper row">
+	<div class="col-md-4 col-sm-6 col-xs-12">
+		<div class="new-letter" ng-show="$ctrl.writeNew">
+			<div class="form-group">
+				<button ng-click="$ctrl.writeNew = false" class="compose btn btn-danger">Close</button>
+			</div>
+			<form name="newLetterForm" novalidate ng-submit="$ctrl.submit()">
+				<div class="form-group">
+					<label for="usr">To:</label>
+					<input type="email" name="to" class="form-control" ng-model="$ctrl.newLetter.to" required>
+					<span ng-show="newLetterForm.to.$invalid">You email incorrect</span>
+					<span ng-show="newLetterForm.to.$error.required">Email is required</span>
+				</div>
+				<div class="form-group">
+					<label for="pwd">Subject:</label>
+					<input type="text" name="subject" class="form-control" ng-model="$ctrl.newLetter.subject" required>
+					<span ng-show="newLetterForm.subject.$error.required">Subject is required</span>
+				</div>
+				<div class="form-group">
+					<label for="pwd">Body:</label>
+					<textarea class="form-control" rows="5" ng-model="$ctrl.newLetter.body.text"></textarea>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-default" ng-disabled="newLetterForm.$invalid">Send</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

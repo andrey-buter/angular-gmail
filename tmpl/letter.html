@@ -1,0 +1,32 @@
+<li class="email-item row" ng-class="{unread: $ctrl.letter.body.unread}">
+	<div class="actions col-sm-1">
+		<ul class="mail-icons list-inline">
+			<li>
+				<input type="checkbox" class="mail-select">
+			</li>
+			<li ng-click="$ctrl.draft()">
+				<span class="glyphicon" ng-class="$ctrl.letter.body.draft ? 'glyphicon-star' : 'glyphicon-star-empty'"></span>
+			</li>
+			<li ng-click="$ctrl.delete()">
+				<span class="glyphicon glyphicon-trash"></span>
+			</li>
+		</ul>
+	</div>
+	<div class="people col-sm-2" ng-click="$ctrl.open()">
+		<span class="people-names">
+			{{$ctrl.letter.to}}
+		</span>
+	</div><!-- people -->
+
+	<div class="message col-sm-7" ng-click="$ctrl.open()">
+		<div class="clipper">
+			<h3>{{$ctrl.letter.subject}}</h3>
+			-
+			<p>{{$ctrl.letter.body.text}}</p>
+		</div>
+	</div><!-- message -->
+
+	<div class="date col-sm-2" ng-click="$ctrl.open()">
+		<date class="pull-right">{{$ctrl.letter.body.date}}</date>
+	</div><!-- date -->
+</li>

@@ -1,0 +1,28 @@
+<new-message write-new="$ctrl.writeNew" letters="$ctrl.letters"></new-message>
+
+<div class="mail row">
+	<div class="sidebar col-sm-2">
+		<button class="compose btn btn-danger" ng-click="$ctrl.writeNew = true">
+			Compose
+		</button>
+
+		<ul class="inbox-sections list-unstyled">
+			<li ng-class="{active: $ctrl.getUnreadLettersCount()}">
+				Inbox {{ $ctrl.getUnreadLettersCount() }}
+			</li>
+			<li>Sent Mail</li>
+			<li class="pending">
+				Drafts (7)
+			</li>
+			<li>All Mail</li>
+			<li class="pending">
+				Spam (1)
+			</li>
+		</ul>
+	</div><!-- sidebar -->
+
+
+	<div class="inbox col-sm-10">
+		<inbox ng-if="'list' == $ctrl.status"></inbox>
+	</div><!-- inbox -->
+</div><!-- mail -->

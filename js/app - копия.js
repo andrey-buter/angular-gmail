@@ -1,0 +1,219 @@
+angular.module( 'gmailApp', [] )
+	.service( 'dbService', function( $http ) {
+		const URL = 'http://test-api.javascript.ru/v1/andrey-buter-1';
+
+		this.getAll = ( model ) => $http.get( `${URL}/${model}` ).then( response => response.data ); 
+
+		this.add = ( model, data ) => $http.post( `${URL}/${model}`, data ).then( response => response.data );
+
+		this.update = ( model, id, data ) => $http.patch( `${URL}/${model}/${id}`, data ).then( (response) => {
+			return response.data;
+		} );
+
+		this.delete = ( model, id ) => $http.delete( `${URL}/${model}/${id}` );
+
+		this.deleteAll = ( model ) => $http.delete( `${URL}/${model}` );	
+	})
+	.service( 'mailBoxService', function( dbService ) {
+		const MODEL = 'mailboxes';
+		const TITLE = 'gmail';
+
+		let id = false;
+
+		this.getId = () => id;
+
+		this.init = () => {
+			return dbService.getAll( MODEL )
+				.then( ( data ) => {
+					if ( 0 < data.length ) 
+						return data;
+
+					// создаем новый mailbox
+					return dbService.add( MODEL, { title: TITLE } );
+				})
+				.then( ( data ) => {
+					id = data[0]._id;
+
+					return id;
+				});
+		}
+	})
+	.service( 'letterService', function( $filter, dbService, mailBoxService ) {
+		const MODEL = 'letters';
+
+		this.getAll = () => {
+			return dbService
+					.getAll( MODEL )
+					.then( this.lettersFromJson );
+		}
+
+		this.add = ( letter ) => {
+			letter.body.date   = this.getCurrentTime();
+			letter.body.unread = true;
+			letter.mailbox     = mailBoxService.getId();
+
+			return dbService
+					.add( MODEL, this.prepareToSave( letter ) )
+					.then( (data) => {
+						return this.lettersFromJson( [ data ] )[0];
+					});
+		}
+
+		this.update = ( letter ) => {
+			return dbService
+					.update( MODEL, letter._id, this.prepareToSave( letter ) )
+					.then( (data) => {
+						return this.lettersFromJson( [ data ] )[0];
+					});
+		}
+
+		this.delete = ( letter ) => {
+			return dbService
+					.delete( MODEL, letter._id )
+					.then( (data) => {
+						console.log(data)
+						return data;
+					});
+		}
+
+		this.prepareToSave = ( letter ) => {
+			let out = angular.extend({}, letter);
+
+			out.body = $filter('json')( out.body );
+
+			return out;
+		}
+
+		this.lettersFromJson = ( letters ) => {
+			letters = angular.forEach( letters, function( val ) {
+				val.body = angular.fromJson( val.body );
+
+				return val;
+			});
+
+			return letters;
+		}
+
+		this.defautNewLetter = () => {
+			let self = this;
+
+			return {
+				to: 'test@test.com',
+				subject: 'subject - ' + self.getCurrentTime(),
+				body: {
+					text: 'Test text'
+				}
+			}
+		};
+
+		this.getCurrentTime = () => {
+			return $filter('date')(new Date(), 'yyyy-MM-dd HH:mm:ss');
+		}
+
+		// this.filterBy = ( arr, prop = {} ) => {
+		// 	return $filter('filter')( arr, prop );
+		// }
+	})
+	.service( 'factoryService', function( dbService, mailBoxService, letterService ) {
+		this.db      = dbService;
+		this.mailBox = mailBoxService;
+		this.letter  = letterService;
+	})
+	.component( 'newMessage', {
+		bindings: {
+			writeNew: '=', // двустороннее связыаение, чтоб в gmail.writeNew также менялось состояние
+			letters: '=',
+		},
+		templateUrl: 'tmpl/new-message.html',
+		controller: function( factoryService ) {
+			this.writeNew = false;
+			this.newLetter = factoryService.letter.defautNewLetter();
+
+			this.submit = () => {
+				factoryService.letter
+					.add( this.newLetter )
+					.then( (data) => {
+						this.letters.push( data );
+						this.newLetter = {};
+						this.writeNew = false;
+						console.log('email success added')
+					});
+			}
+		}
+	})
+	.component( 'letter', {
+		bindings: {
+			letter: '<',
+		 	openSingle: '&',
+		 	deleteLetter: '&'
+		},
+		templateUrl: 'tmpl/letter.html',
+		controller: function( factoryService ) {
+			this.open = () => {
+				this.openSingle();
+
+				if ( false === this.letter.body.unread ) 
+					return;
+
+				this.letter.body.unread = false;
+
+				factoryService.letter
+					.update( this.letter )
+					.then( (data) => {
+						console.log('success updated')
+						console.log(data)
+					});
+			}
+			this.delete = () => {
+				this.deleteLetter();
+
+				factoryService.letter
+					.delete( this.letter )
+					.then( (data) => {
+						console.log('success removed')
+					});
+			}
+		}
+	})
+	.component( 'singleLetter', {
+		bindings: {
+			letter: '<',
+		},
+		templateUrl: 'tmpl/opened-letter.html',
+	})
+	.component( 'gmail', {
+		templateUrl: 'tmpl/gmail.html',
+		controller: function( factoryService, $filter ) {
+			this.writeNew    = false;
+			this.status      = 'list';
+			this.letters     = [];
+			this.openedLetter = {};
+
+			factoryService.mailBox.init();
+
+			factoryService.letter.getAll()
+				.then( (data) => {
+					this.letters = data;
+				});
+
+			this.openLetter = (letter) => {
+				this.status     = 'single';
+				this.openedLetter = letter;
+			}
+			this.closeLetter = () => {
+				this.status = 'list';
+				this.openedLetter = {};
+			}
+			this.deleteLetter = (letter) => {
+				this.letters.splice(this.letters.indexOf(letter), 1);
+			}
+			this.getUnreadLettersCount = () => {
+				let count = $filter('filter')( this.letters, { body: { unread: true } } ).length;
+
+				if ( 0 == count )
+					return '';
+
+				return `(${count})`;
+			}
+		}
+	})
